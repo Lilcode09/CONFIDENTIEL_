@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Validation Couverture - DGSE</title>
+<style>
+    body {
+        background-color: black;
+        color: #33ff33;
+        font-family: "Courier New", monospace;
+        font-size: 16px;
+        margin: 20px;
+    }
+    #terminal {
+        white-space: pre-wrap;
+    }
+    .error {
+        color: red;
+    }
+</style>
+</head>
+<body>
+<div id="terminal"></div>
+<script>
+// === CONFIG FACILE À MODIFIER ===
+const QUESTIONS = [
+    { q: "Nom de couverture :", a: "julien caradec" },
+    { q: "Date de naissance (JJ/MM/AAAA) :", a: "12/09/2003" },
+    { q: "Ville de résidence :", a: "lyon" },
+    { q: "Profession :", a: "etudiant en sciences politiques" },
+    { q: "Club préféré :", a: "ol" },
+    { q: "Prénom de la cousine :", a: "manon" }
+];
+const PASSCODE = "SPECTRE-21";
+const MAX_ERRORS = 3;
+
+// === SCRIPT ===
+let terminal = document.getElementById("terminal");
+let index = 0;
+let errors = 0;
+
+function typeText(text, callback) {
+    let i = 0;
+    let interval = setInterval(() => {
+        terminal.innerHTML += text[i];
+        i++;
+        if (i >= text.length) {
+            clearInterval(interval);
+            if (callback) callback();
+        }
+    }, 20);
+}
+
+function askQuestion() {
+    if (index >= QUESTIONS.length) {
+        typeText("\n\n>>> ACCÈS AUTORISÉ - CODE : " + PASSCODE + " <<<\n", null);
+        return;
+    }
+    typeText("\n" + QUESTIONS[index].q + " ", () => {
+        let input = document.createElement("input");
+        input.type = "text";
+        input.style.background = "black";
+        input.style.color = "#33ff33";
+        input.style.border = "none";
+        input.style.outline = "none";
+        input.style.fontFamily = "Courier New, monospace";
+        input.style.fontSize = "16px";
+        terminal.appendChild(input);
+        input.focus();
+        input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                let answer = input.value.trim().toLowerCase();
+                input.disabled = true;
+                if (answer === QUESTIONS[index].a) {
+                    typeText("\n> Réponse correcte.", () => {
+                        index++;
+                        askQuestion();
+                    });
+                } else {
+                    errors++;
+                    let warning = document.createElement("div");
+                    warning.className = "error";
+                    warning.textContent = `> MAUVAISE RÉPONSE ! (${errors}/${MAX_ERRORS}) - Chaque erreur peut compromettre votre couverture.`;
+                    terminal.appendChild(warning);
+                    if (errors >= MAX_ERRORS) {
+                        typeText("\n>>> ACCÈS BLOQUÉ - COUVERTURE COMPROMISE <<<", null);
+                    } else {
+                        index++;
+                        askQuestion();
+                    }
+                }
+            }
+        });
+    });
+}
+
+// Intro
+typeText("=== DGSE | Division HUMINT ===\nDossier de validation de légende\nVeuillez répondre avec exactitude.\nChaque erreur peut mettre en péril votre couverture.\n\n", askQuestion);
+</script>
+</body>
+</html>
